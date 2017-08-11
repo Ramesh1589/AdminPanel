@@ -1,0 +1,147 @@
+<div ng-controller="dashboardCtrl">
+    <div ng-include="'../app/templates/header.html'"></div>
+    <h6 style="text-align: inherit; margin-left: 50px";><strong>ODIN Voice CAST Dashboard</strong></h6>
+
+
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Side Bar -->
+        <div class="hidden-xs col-md-2 sidebar-offcanvas" id="sidebar">
+
+          <div ng-include="'../app/templates/sidebar.html'"></div>
+        </div>
+
+        <!--JSON Data-->
+
+        <div class="col-md-9">
+          <div class="row hidden-xs">
+            <div class="panel panel-default ">
+              <div class="panel-body ">
+                <ul class="nav nav-pills" role="tablist">
+                  <li role="presentation" class="active" ng-model="tradeConfCount.activeCalls">
+                    <a href="#" ng-click="callConfStatus =undefine; callStatus = '2'; boxHeader='Active Calls'">Active Calls <span class="badge">
+                      {{tradeConfCount.nActiveCount}}</span>
+                    </a>
+                  </li>
+                  <li role="presentation" class="active" ng-model="tradeConfCount.totalCalls">
+                    <a href="#" ng-click="callConfStatus = undefine; callStatus = undefine; boxHeader='Total Calls'">Total Calls <span class="badge">
+                      {{tradeConfCount.nTotalCount}}</span>
+                    </a>
+                  </li>
+                  <li role="presentation" class="active" ng-model="tradeConfCount.acceptedCalls">
+                    <a href="#" ng-click="callConfStatus ='1'; callStatus = undefine; boxHeader='Accepted Calls'">Accepted Calls <span class="badge">
+                      {{tradeConfCount.nAcceptedCount}}</span>
+                    </a>
+                  </li>
+                  <li role="presentation" class="active" ng-model="tradeConfCount.rejectedCalls">
+                    <a href="#" ng-click="callConfStatus ='2'; callStatus = undefine; boxHeader='Rejected Calls'">Rejected Calls <span class="badge">
+                      {{tradeConfCount.nRejectedCount}}</span>
+                    </a>
+                  </li>
+                  <li role="presentation" class="active" ng-model="tradeConfCount.completeCalls">
+                    <a href="#" ng-click="callConfStatus = undefine; callStatus = '3'; boxHeader='Complete Calls'">Complete Calls <span class="badge">
+                      {{tradeConfCount.nCompletedCount}}</span>
+                    </a>
+                  </li>
+                  <li role="presentation" class="active" ng-model="tradeConfCount.incompletCalls">
+                    <a href="#" ng-click="callConfStatus = undefine ; callStatus = '4'; boxHeader='Incomplete Calls'">Incomplete Calls <span class="badge">
+                      {{tradeConfCount.nInCompletedCount}}</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div ui-view>
+          <div class="col-md-9">
+            <div class="row">
+              <div class="form-group row">
+                <div class="col-md-4 col-xs-6">
+                  <input type="search" class="form-control" ng-model="searchText" placeholder="Search Customer ">
+                </div>
+
+                <div class="col-md-8 col-xs-6">
+    <!--
+                  <a class="btn btn-success pull-right"  ng-click='csv.generate()' ng-href="{{ csv.link() }}" download="TradeConfInfo.csv">
+                    <span class="glyphicon glyphicon-download-alt" area-hidden ="true"></span>&nbsp;Export
+                  </a>
+    -->
+               <a  class="btn btn-success pull-right" ng-controller="dashboardCtrl" ng-click='csv.generate($event)' ng-href="{{ csv.link() }}"  download="TradeConfInfo.csv">
+                    <span class="glyphicon glyphicon-download-alt" area-hidden ="true"></span>&nbsp;Export
+                  </a>
+                </div>
+              </div>
+              <h4>Trade Confirmation Details: {{boxHeader}}</h4>
+              <div class="table-responsive" ng-init="fileName()">
+    <!--            <table class="table table-hover table-bordered" export-csv="csv" seperator=";" export-csv-ignore="ignore" >-->
+                 <table class="table table-hover table-bordered" export-csv="csv" seperator=";" export-csv-ignore="ignore"  ng-table="tableParams">
+
+                  <thead>
+                    <tr>
+                      <th>Client Id</th>
+                      <th>Client Name</th>
+                      <th>Mobile Number</th>
+                      <th>Calls</th>
+                      <th>Duration</th>
+                      <th class="ignore">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody dir-paginate="data in tradeInfos | filter : searchText | filter:{sConfirmationStatus : callConfStatus, sCallStatus : callStatus} | itemsPerPage:10">
+                    <tr>
+                      <td>{{data.sClientId}}</td>
+                      <td>{{data.sClientName}}</td>
+                      <td>{{data.sClientMobileNo}}</td>
+                      <td>
+                         <span ng-model="sCallStatus">
+                              <p ng-if = "data.sCallStatus == 2 && data.sConfirmationStatus == 0">Answered</p>
+                              <p ng-if = "data.sCallStatus == 3 && data.sConfirmationStatus == 1">Accepted</p>
+                              <p ng-if = "data.sCallStatus == 3 && data.sConfirmationStatus == 2">Rejected</p>
+                              <p ng-if = "data.sCallStatus == 3 && data.sConfirmationStatus == 3">Accepted</p>
+                              <p ng-if = "data.sCallStatus == 3 && data.sConfirmationStatus == 4">Rejected</p>
+                              <p ng-if = "data.sCallStatus == 4 && data.sConfirmationStatus == 0">Incomplete</p>
+                              <p ng-if = "data.sCallStatus == 5 && data.sConfirmationStatus == 0">Busy / Unanswered</p>
+                            </span>
+                      </td>
+                      <td>{{data.nCallDuration}}</td>
+                      <td class="ignore">
+                        <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target="#info" ng-click="getDetails(data)">View Details</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <!--Modal  -->
+                <div class="modal fade" id="info" role="dialog">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">{{detail.sClientName}}</h4>
+                      </div>
+                      <div class="modal-body">
+                        <p>{{detail.sTTSText}}</p>
+
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--    Pagination-->
+          <div class="row">
+            <div class="col-md-8 col-md-offset-4 col-xs-12">
+              <dir-pagination-controls max-size="15" direction-links="true" boundary-links="true"></dir-pagination-controls>
+            </div>
+          </div>
+          <!-- End OfmPagination -->
+        </div>
+      </div>
+    </div>
+   
+
+</div>
